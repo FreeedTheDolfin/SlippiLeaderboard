@@ -1,0 +1,46 @@
+{
+    "leaderboard": [
+        {
+            "username": "kpopfan69",
+            "code": "kpop#572",
+            "elo": 1395.080297,
+            "wins": 33,
+            "losses": 32,
+            "characters": "MARTH, FOX, SHEIK, ICE_CLIMBERS, FALCO, LUIGI"
+        },
+        {
+            "username": "roflwhiskers",
+            "code": "rofl#685",
+            "elo": 1380.840708,
+            "wins": 70,
+            "losses": 78,
+            "characters": "MARTH"
+        },
+        {
+            "username": "FreeedTheDolfin",
+            "code": "fred#282",
+            "elo": 1288.429617,
+            "wins": 35,
+            "losses": 34,
+            "characters": "MARTH, FOX"
+        },
+        {
+            "username": "KING",
+            "code": "king#553",
+            "elo": 1277.591951,
+            "wins": 134,
+            "losses": 148,
+            "characters": "GANONDORF, FOX, FALCO"
+        },
+        {
+            "username": "The Muzz",
+            "code": "hjm#176",
+            "elo": 1180.08861,
+            "wins": 10,
+            "losses": 14,
+            "characters": "FALCO"
+        }
+    ],
+    "channel_id": 1344431655321866351,
+    "last_leaderboard_message_id": 1344503828430716972
+}
