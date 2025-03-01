@@ -17,6 +17,8 @@ async def on_ready():
     """Handles bot startup and starts auto-updating leaderboard."""
     print(f"✅ Logged in as {bot.user}")
     print("🔄 Checking for command updates...")
+    await load_cogs()
+    print("✅ Slash commands loaded successfully!")
     await bot.tree.sync()
     print("✅ Slash commands synced successfully!")
 

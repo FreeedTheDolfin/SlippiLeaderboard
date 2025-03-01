@@ -1,5 +1,5 @@
 import discord
-from discord import app_commands
+from discord import app_commands, Interaction  # Ensure Interaction is imported correctly
 from discord.ext import commands
 from utils.data_manager import load_data, save_data
 from utils.image_generator import generate_leaderboard_image
@@ -15,7 +15,7 @@ class Leaderboard(commands.Cog):
 
     @app_commands.command(name="sl1ppi_setchannel", description="Sets the leaderboard channel.")
     @app_commands.describe(channel_name="The name of the text channel where leaderboard updates will be posted.")
-    async def setchannel(self, interaction: discord.Interaction, channel_name: str):
+    async def setchannel(self, interaction: Interaction, channel_name: str):
         """Sets the leaderboard update channel."""
         channel = discord.utils.get(interaction.guild.text_channels, name=channel_name)
 
@@ -28,7 +28,7 @@ class Leaderboard(commands.Cog):
 
     @app_commands.command(name="sl1ppi_add", description="Adds a player to the leaderboard.")
     @app_commands.describe(slippi_code="The player's Slippi code (e.g., FRED#282).")
-    async def add(self, interaction: discord.Interaction, slippi_code: str):
+    async def add(self, interaction: Interaction, slippi_code: str):
         """Adds a player to the leaderboard."""
         await interaction.response.defer(thinking=True)
         player = fetch_player_data(slippi_code)
@@ -49,7 +49,7 @@ class Leaderboard(commands.Cog):
 
     @app_commands.command(name="sl1ppi_remove", description="Removes a player from the leaderboard.")
     @app_commands.describe(slippi_code="The player's Slippi code to remove.")
-    async def remove(self, interaction: discord.Interaction, slippi_code: str):
+    async def remove(self, interaction: Interaction, slippi_code: str):
         """Removes a player from the leaderboard."""
         await interaction.response.defer(thinking=True)
 
@@ -62,63 +62,63 @@ class Leaderboard(commands.Cog):
 
         await interaction.followup.send(f"⚠️ Player {slippi_code} not found.")
 
-@app_commands.command(name="sl1ppi_leaderboard", description="Displays the leaderboard.")
-@app_commands.describe(update="Whether or not to fetch updated data from the Slippi API.")
-async def leaderboard(self, interaction: discord.Interaction, update: bool = False):
-    """Displays the Slippi leaderboard with an option to fetch updated data."""
-    await interaction.response.defer(thinking=True)
-
-    if not self.leaderboard:
-        await interaction.followup.send("🏆 No players in the leaderboard yet!")
-        return
-
-    # If update is True, fetch the latest player data from the Slippi API
-    if update:
-        updated_leaderboard = []
-        for player in self.leaderboard:
-            try:
-                player_data = fetch_player_data(player["code"])
-                if player_data:
-                    updated_leaderboard.append(player_data)
-            except Exception as e:
-                print(f"❌ Error updating player {player['code']}: {e}")
-                continue
-
-        if updated_leaderboard:
-            self.leaderboard.clear()
-            self.leaderboard.extend(updated_leaderboard)
-            self.leaderboard.sort(key=lambda x: x["elo"], reverse=True)
-            save_data(self.leaderboard, self.channel_id, self.last_message_id)
-            generate_leaderboard_image(self.leaderboard)
-            await interaction.followup.send("✅ Leaderboard updated from the Slippi API!", ephemeral=True)
+    @app_commands.command(name="sl1ppi_leaderboard", description="Displays the leaderboard.")
+    @app_commands.describe(update="Whether or not to fetch updated data from the Slippi API.")
+    async def leaderboard(self, interaction: Interaction, update: bool = False):
+        """Displays the Slippi leaderboard with an option to fetch updated data."""
+        await interaction.response.defer(thinking=True)
+    
+        if not self.leaderboard:
+            await interaction.followup.send("🏆 No players in the leaderboard yet!")
+            return
+    
+        # If update is True, fetch the latest player data from the Slippi API
+        if update:
+            updated_leaderboard = []
+            for player in self.leaderboard:
+                try:
+                    player_data = fetch_player_data(player["code"])
+                    if player_data:
+                        updated_leaderboard.append(player_data)
+                except Exception as e:
+                    print(f"❌ Error updating player {player['code']}: {e}")
+                    continue
+                
+            if updated_leaderboard:
+                self.leaderboard.clear()
+                self.leaderboard.extend(updated_leaderboard)
+                self.leaderboard.sort(key=lambda x: x["elo"], reverse=True)
+                save_data(self.leaderboard, self.channel_id, self.last_message_id)
+                generate_leaderboard_image(self.leaderboard)
+                await interaction.followup.send("✅ Leaderboard updated from the Slippi API!", ephemeral=True)
+            else:
+                await interaction.followup.send("⚠️ No updated player data available.", ephemeral=True)
+    
         else:
-            await interaction.followup.send("⚠️ No updated player data available.", ephemeral=True)
-
-    else:
-        generate_leaderboard_image(self.leaderboard)
-        await interaction.followup.send("✅ Displaying saved leaderboard.", ephemeral=True)
-
-    # Get the target channel (use the saved channel if available)
-    channel = self.bot.get_channel(self.channel_id) or interaction.channel
-
-    # Delete previous leaderboard message if it exists
-    if self.last_message_id:
-        try:
-            old_msg = await channel.fetch_message(self.last_message_id)
-            await old_msg.delete()
-        except discord.NotFound:
-            pass
-
-    # Send the updated leaderboard image
-    leaderboard_message = await channel.send(file=discord.File("leaderboard.png"))
-    self.last_message_id = leaderboard_message.id
-    save_data(self.leaderboard, self.channel_id, self.last_message_id)
-
-    await interaction.followup.send("✅ Leaderboard updated!", ephemeral=True)
+            generate_leaderboard_image(self.leaderboard)
+            await interaction.followup.send("✅ Displaying saved leaderboard.", ephemeral=True)
+    
+        # Get the target channel (use the saved channel if available)
+        channel = self.bot.get_channel(self.channel_id) or interaction.channel
+    
+        # Delete previous leaderboard message if it exists
+        if self.last_message_id:
+            try:
+                old_msg = await channel.fetch_message(self.last_message_id)
+                await old_msg.delete()
+            except discord.NotFound:
+                pass
+            
+        # Send the updated leaderboard image
+        leaderboard_message = await channel.send(file=discord.File("leaderboard.png"))
+        self.last_message_id = leaderboard_message.id
+        save_data(self.leaderboard, self.channel_id, self.last_message_id)
+    
+        await interaction.followup.send("✅ Leaderboard updated!", ephemeral=True)
 
     @app_commands.command(name="sl1ppi_resetleaderboard", description="Resets the leaderboard.")
     @app_commands.describe(confirm="Type 'confirm' to reset the leaderboard.")
-    async def resetleaderboard(self, interaction: discord.Interaction, confirm: str):
+    async def resetleaderboard(self, interaction: Interaction, confirm: str):
         """Clears the leaderboard after confirmation."""
         if confirm.lower() != "confirm":
             await interaction.response.send_message("⚠️ You must type 'confirm' to reset the leaderboard.", ephemeral=True)
